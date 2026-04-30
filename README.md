@@ -52,7 +52,7 @@ welcome-guest/
 1. Clone the repository into the server root:
 
 ```bash
-git clone https://github.com/your-username/welcome-guest.git /var/www/html
+git clone https://github.com/MarceloDelgadoDev/welcome-guest.git /var/www/html
 ```
 
 2. Make sure PHP can write to the directory so it can create `ips.log`:
