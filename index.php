@@ -358,7 +358,7 @@ $visit_count = count($all_entries);
                 <tbody>
                     <?php foreach ($entries as $i => $entry): ?>
                         <tr>
-                            <td><?= $i + 1 ?></td>
+                            <td><?= $visit_count - $i ?></td>
                             <td><?= htmlspecialchars($entry['datetime']) ?></td>
                             <td><?= htmlspecialchars($entry['ip']) ?></td>
                             <?php
