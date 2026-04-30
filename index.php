@@ -42,17 +42,97 @@ function read_log(): array {
 
     $entries = [];
     foreach (array_reverse($lines) as $line) {
-        $parts = explode(' | ', $line, 3);
-        if (count($parts) === 3) {
-            $entries[] = [
-                'datetime' => $parts[0],
-                'ip'       => $parts[1],
-                'ua'       => $parts[2],
-            ];
+        // datetime | ip | …UA pode conter " | "; só os dois primeiros delimitadores fecham ip/datetime
+        $p1 = strpos($line, ' | ');
+        if ($p1 === false) {
+            continue;
         }
+        $p2 = strpos($line, ' | ', $p1 + 3);
+        if ($p2 === false) {
+            continue;
+        }
+        $entries[] = [
+            'datetime' => substr($line, 0, $p1),
+            'ip'       => substr($line, $p1 + 3, $p2 - $p1 - 3),
+            'ua'       => substr($line, $p2 + 3),
+        ];
     }
 
     return $entries;
+}
+
+/** macOS 10_15_7 → 10.15 (só o que costuma importar na lista) */
+function macos_version_short(string $underscore): string {
+    $parts = explode('_', $underscore);
+
+    return ($parts[0] ?? '0') . '.' . ($parts[1] ?? '0');
+}
+
+// --- Uma linha: só navegador + SO (tooltip mantém o UA completo) ---
+function client_one_line(string $ua): string {
+    $ua = trim($ua);
+    if ($ua === '' || strcasecmp($ua, 'unknown') === 0) {
+        return 'unknown';
+    }
+
+    $browser = '';
+    $os      = '';
+
+    if (preg_match('/Android (\d+(?:\.\d+)?)/', $ua, $m)) {
+        $os = 'Android ' . $m[1];
+    } elseif (preg_match('/iPhone OS ([\d_]+)/', $ua, $m)) {
+        $os = 'iOS ' . str_replace('_', '.', $m[1]);
+    } elseif (preg_match('/CPU iPad OS ([\d_]+)/', $ua, $m) || preg_match('/iPad.*OS ([\d_]+)/', $ua, $m)) {
+        $os = 'iPadOS ' . str_replace('_', '.', $m[1]);
+    } elseif (preg_match('/Mac OS X ([\d_]+)/', $ua, $m)) {
+        $os = 'macOS ' . macos_version_short($m[1]);
+    } elseif (preg_match('/Windows NT ([\d.]+)/', $ua, $m)) {
+        $map = [
+            '10.0' => 'Win 10/11',
+            '6.3'  => 'Win 8.1',
+            '6.2'  => 'Win 8',
+            '6.1'  => 'Win 7',
+        ];
+        $os = $map[$m[1]] ?? 'Windows';
+    } elseif (stripos($ua, 'CrOS') !== false) {
+        $os = 'Chrome OS';
+    } elseif (stripos($ua, 'Linux') !== false && stripos($ua, 'Android') === false) {
+        $os = 'Linux';
+    }
+
+    $major = static function (string $v): string {
+        return explode('.', $v)[0];
+    };
+
+    if (preg_match('/Edg(?:e|iOS|A)?\/([\d.]+)/', $ua, $m)) {
+        $browser = 'Edge ' . $major($m[1]);
+    } elseif (preg_match('/OPR\/([\d.]+)/', $ua, $m)) {
+        $browser = 'Opera ' . $major($m[1]);
+    } elseif (preg_match('/Chrome\/([\d.]+)/', $ua, $m)) {
+        $browser = 'Chrome ' . $major($m[1]);
+    } elseif (preg_match('/Firefox\/([\d.]+)/', $ua, $m)) {
+        $browser = 'Firefox ' . $major($m[1]);
+    } elseif (preg_match('/Version\/([\d.]+).*Safari\//', $ua, $m) && stripos($ua, 'Chrome') === false) {
+        $browser = 'Safari ' . $major($m[1]);
+    } elseif (preg_match('/Safari\/[\d.]+/', $ua) && stripos($ua, 'Chrome') === false && stripos($ua, 'Firefox') === false) {
+        $browser = 'Safari';
+    } elseif (preg_match('/^curl\/([\d.]+)/i', $ua, $m)) {
+        $browser = 'curl ' . $m[1];
+        if ($os === '') {
+            $os = 'CLI';
+        }
+    } elseif (preg_match('/wget/i', $ua)) {
+        $browser = 'wget';
+    }
+
+    $bits = array_values(array_filter([$browser, $os]));
+    if ($bits !== []) {
+        return implode(' · ', $bits);
+    }
+
+    $max = 52;
+
+    return (mb_strlen($ua) > $max ? mb_substr($ua, 0, $max) . '…' : $ua);
 }
 
 // --- Grava o IP atual no log ---
@@ -154,7 +234,7 @@ $visit_count = count($all_entries);
 
         .log-wrapper {
             width: 100%;
-            max-width: 820px;
+            max-width: 640px;
         }
 
         .log-wrapper h2 {
@@ -200,12 +280,28 @@ $visit_count = count($all_entries);
         }
 
         td.ua {
-            color: var(--muted);
-            font-size: 0.75rem;
-            max-width: 260px;
+            font-size: 0.8rem;
+            max-width: min(340px, 38vw);
+            vertical-align: middle;
+            line-height: 1.25;
+        }
+
+        .ua-line {
+            display: block;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            white-space: nowrap;
+        }
+
+        tbody tr:first-child td.ua .ua-line {
+            color: var(--accent);
+        }
+
+        tbody tr:not(:first-child) td.ua .ua-line {
+            color: var(--muted);
+            font-weight: normal;
         }
 
         .empty {
@@ -256,7 +352,7 @@ $visit_count = count($all_entries);
                         <th>#</th>
                         <th>datetime</th>
                         <th>ip</th>
-                        <th>user-agent</th>
+                        <th>client</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -265,8 +361,12 @@ $visit_count = count($all_entries);
                             <td><?= $i + 1 ?></td>
                             <td><?= htmlspecialchars($entry['datetime']) ?></td>
                             <td><?= htmlspecialchars($entry['ip']) ?></td>
-                            <td class="ua" title="<?= htmlspecialchars($entry['ua']) ?>">
-                                <?= htmlspecialchars($entry['ua']) ?>
+                            <?php
+                                $rawUa       = $entry['ua'];
+                                $clientLabel = client_one_line($rawUa);
+                            ?>
+                            <td class="ua" title="<?= htmlspecialchars($rawUa) ?>">
+                                <span class="ua-line"><?= htmlspecialchars($clientLabel) ?></span>
                             </td>
                         </tr>
                     <?php endforeach; ?>
