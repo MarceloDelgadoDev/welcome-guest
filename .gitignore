@@ -1,0 +1,12 @@
+# Log de visitantes (gerado automaticamente, não versionar)
+ips.log
+
+# Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Sistema
+.DS_Store
+Thumbs.db
