@@ -3,6 +3,7 @@
 // --- Config ---
 define('LOG_FILE', __DIR__ . '/ips.log');
 define('MAX_ENTRIES', 50);
+define('DISPLAY_LIMIT', 20);
 
 // --- Captura o IP do visitante ---
 function get_visitor_ip(): string {
@@ -76,7 +77,9 @@ function write_log(string $ip): void {
 // --- Execução ---
 $visitor_ip = get_visitor_ip();
 write_log($visitor_ip);
-$entries = read_log();
+$all_entries = read_log();
+$entries = array_slice($all_entries, 0, DISPLAY_LIMIT);
+$visit_count = count($all_entries);
 
 ?>
 <!DOCTYPE html>
@@ -151,7 +154,7 @@ $entries = read_log();
 
         .log-wrapper {
             width: 100%;
-            max-width: 640px;
+            max-width: 820px;
         }
 
         .log-wrapper h2 {
@@ -232,7 +235,7 @@ $entries = read_log();
 
     <header>
         <h1>welcome, guest</h1>
-        <p>this server has been visited <?= count($entries) ?> time<?= count($entries) !== 1 ? 's' : '' ?></p>
+        <p>this server has been visited <?= $visit_count ?> time<?= $visit_count !== 1 ? 's' : '' ?></p>
     </header>
 
     <div class="your-ip">
@@ -273,7 +276,7 @@ $entries = read_log();
     </div>
 
     <footer>
-        <a href="https://github.com/seu-usuario/welcome-guest" target="_blank">github</a>
+        <a href="https://github.com/MarceloDelgadoDev/welcome-guest" target="_blank">github</a>
         &nbsp;&mdash;&nbsp;
         welcome-guest
     </footer>
