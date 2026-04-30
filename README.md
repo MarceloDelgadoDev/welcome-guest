@@ -1,5 +1,9 @@
 # welcome-guest
 
+<p align="center">
+  <img src="logo.png" alt="welcome, guest — project logo" width="640" />
+</p>
+
 A welcome page for PHP servers that replaces the default *"It works!"* screen.
 
 Shows the latest IPs that accessed the server, with date/time and user-agent.
@@ -27,6 +31,7 @@ recent visitors
 
 ```
 welcome-guest/
+├── logo.png    → banner / README branding
 ├── index.php   → logic + UI
 ├── ips.log     → generated automatically (not versioned)
 ├── .gitignore
