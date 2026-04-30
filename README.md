@@ -1,12 +1,12 @@
 # welcome-guest
 
-Uma página de boas-vindas para servidores PHP que substitui o padrão *"It works!"*.
+A welcome page for PHP servers that replaces the default *"It works!"* screen.
 
-Exibe os últimos IPs que acessaram o servidor, com data/hora e user-agent.
+Shows the latest IPs that accessed the server, with date/time and user-agent.
 
 ---
 
-## Prévia
+## Preview
 
 ```
 welcome, guest
@@ -23,68 +23,68 @@ recent visitors
 
 ---
 
-## Arquivos
+## Files
 
 ```
 welcome-guest/
-├── index.php   → lógica + interface
-├── ips.log     → gerado automaticamente (não versionado)
+├── index.php   → logic + UI
+├── ips.log     → generated automatically (not versioned)
 ├── .gitignore
 └── README.md
 ```
 
 ---
 
-## Como usar
+## Usage
 
-### Em um servidor Apache/Nginx com PHP
+### On an Apache/Nginx server with PHP
 
-1. Clone o repositório na raiz do servidor:
+1. Clone the repository into the server root:
 
 ```bash
-git clone https://github.com/seu-usuario/welcome-guest.git /var/www/html
+git clone https://github.com/your-username/welcome-guest.git /var/www/html
 ```
 
-2. Certifique-se de que o PHP tem permissão de escrita na pasta para criar o `ips.log`:
+2. Make sure PHP can write to the directory so it can create `ips.log`:
 
 ```bash
 chown www-data:www-data /var/www/html
-# ou
+# or
 chmod 755 /var/www/html
 ```
 
-3. Acesse o servidor no navegador. O `ips.log` será criado automaticamente.
+3. Open the server in your browser. `ips.log` will be created automatically.
 
-### Testar localmente com PHP embutido
+### Test locally with the PHP built-in server
 
 ```bash
 cd welcome-guest
 php -S localhost:8080
 ```
 
-Acesse `http://localhost:8080` no navegador.
+Open `http://localhost:8080` in your browser.
 
 ---
 
-## Configuração
+## Configuration
 
-No topo do `index.php` há duas constantes:
+At the top of `index.php` there are two constants:
 
-| Constante    | Padrão | Descrição                          |
-|--------------|--------|------------------------------------|
-| `LOG_FILE`   | `./ips.log` | Caminho do arquivo de log     |
-| `MAX_ENTRIES`| `50`   | Máximo de registros mantidos       |
-
----
-
-## Segurança
-
-- O `ips.log` é ignorado pelo Git (`.gitignore`) para não expor IPs públicos no repositório.
-- Os dados exibidos na página passam por `htmlspecialchars()` para evitar XSS.
-- Recomendado para uso em servidores pessoais ou de desenvolvimento.
+| Constant      | Default     | Description                    |
+|---------------|-------------|--------------------------------|
+| `LOG_FILE`    | `./ips.log` | Path to the log file           |
+| `MAX_ENTRIES` | `50`        | Maximum number of rows kept    |
 
 ---
 
-## Licença
+## Security
+
+- `ips.log` is ignored by Git (`.gitignore`) so public IPs are not exposed in the repo.
+- Values shown on the page go through `htmlspecialchars()` to mitigate XSS.
+- Intended for personal or development servers.
+
+---
+
+## License
 
 MIT
