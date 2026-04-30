@@ -12,6 +12,10 @@ Shows the latest IPs that accessed the server, with date/time and user-agent.
 
 ## Preview
 
+<p align="center">
+  <img src="screenshot.png" alt="welcome-guest in the browser: visit counter, current IP box, and recent visitors table with client summaries" width="800" />
+</p>
+
 ```
 welcome, guest
 this server has been visited 7 times
@@ -31,8 +35,9 @@ recent visitors
 
 ```
 welcome-guest/
-├── logo.png    → banner / README branding
-├── index.php   → logic + UI
+├── logo.png       → banner / README branding
+├── screenshot.png → README screenshot
+├── index.php      → logic + UI
 ├── ips.log     → generated automatically (not versioned)
 ├── .gitignore
 └── README.md
